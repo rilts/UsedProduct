@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>중고물품거래사이트</title>
+ <link href='https://fonts.googleapis.com/css?family=Open Sans:400,700' rel='stylesheet' type='text/css'>
+ <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+ <!--link href='./style.css' rel='stylesheet' type='text/css'-->
+ <style type="text/css">
+     *{box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box}body{font-family:Helvetica;-webkit-font-smoothing:antialiased;background:rgb(213 230 249);text-align:center;}h2{text-align:center;font-size:18px;text-transform:uppercase;letter-spacing:1px;color:#fff;padding:30px 0}.login{text-align:center;}.logname{width:100%;text-align:right}.table-wrapper{margin:10px 70px 70px;box-shadow:0 35px 50px rgba(0,0,0,.2)}.fl-table{border-radius:5px;font-size:12px;font-weight:400;border:none;border-collapse:collapse;width:100%;max-width:100%;white-space:nowrap;background-color:#fff}.fl-table td,.fl-table th{text-align:center;padding:8px}.fl-table td{border-right:1px solid #f8f8f8;font-size:12px}.fl-table thead th{color:#fff;background:#4fc3a1}.fl-table thead th:nth-child(odd){color:#fff;background:#324960}.fl-table tr:nth-child(even){background:#f8f8f8}@media (max-width:767px){.fl-table{display:block;width:100%}.table-wrapper:before{content:"Scroll horizontally >";display:block;text-align:right;font-size:11px;color:#fff;padding:0 0 10px}.fl-table tbody,.fl-table thead,.fl-table thead th{display:block}.fl-table thead th:last-child{border-bottom:none}.fl-table thead{float:left}.fl-table tbody{width:auto;position:relative;overflow-x:auto}.fl-table td,.fl-table th{padding:20px .625em .625em .625em;height:60px;vertical-align:middle;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;width:120px;font-size:13px;text-overflow:ellipsis}.fl-table thead th{text-align:left;border-bottom:1px solid #f7f7f9}.fl-table tbody tr{display:table-cell}.fl-table tbody tr:nth-child(odd){background:0 0}.fl-table tr:nth-child(even){background:0 0}.fl-table tr td:nth-child(odd){background:#f8f8f8;border-right:1px solid #e6e4e4}.fl-table tr td:nth-child(even){border-right:1px solid #e6e4e4}.fl-table tbody td{display:block;text-align:center}}table.ovt{margin:10px 0 10px 10px;padding:0;color:#333;font-size:.9em;font-weight:300;text-align:center;line-height:25px;width:60%;border-spacing:0;border:2px solid #036;background-color:#fff}table.ovt thead tr:first-child{background:#036;color:#fff;border:none}table.ovt th{font-weight:700;border-bottom:1px solid #ddd}table.ovt th:first-child{padding:0 15px 0 20px}table.ovt thead tr:last-child th{border-bottom:3px solid #ddd}table.ovt tbody tr:hover{background-color:beige}table.ovt tbody tr:last-child td{border:none}table.ovt tbody td{border-bottom:1px solid #ddd}table.ovt tbody td.ralign{text-align:right;padding-right:5px}table.ovt tbody tr.last th{background-color:#ecf0f1;font-weight:700}table.ovt tbody tr.last td{background-color:#ecf0f1;font-weight:700}table.ovt td:last-child{text-align:right;padding-right:10px}table.ovt tbody tr th{min-width:120px}.ovt input{width:90%}.ovt button{width:30%}
+ </style>
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.6/dist/web3.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+ <script type="text/javascript">
+    var abi = [{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"productList","outputs":[{"name":"price","type":"uint256"},{"name":"productName","type":"string"},{"name":"pOwner","type":"address"},{"name":"buyer","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"enrollCount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getNickName","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_pName","type":"string"},{"name":"_price","type":"uint256"}],"name":"enrollProduct","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"buyCount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"productIndex","type":"uint256"}],"name":"buy","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"getSize","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_nick","type":"string"}],"name":"enrollNickName","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"productName","type":"string"},{"indexed":false,"name":"price","type":"uint256"}],"name":"NewlyEnrollProduct","type":"event"}];
+    // ganache
+    var contractAddress = "0x5bae04a21A4958A53CeD1573cC203966ad08BcB1";// ganache
+    // Robsten
+    //var contractAddress = "0x8b20565768D9E15a9e9A5A48B07Dae1f8B7df9f2";// Robsten
+    $(document).ready(function(){
+        if (window.ethereum) {
+                window.dapp_msg = 'Modern dapp browsers';
+        } else if (window.web3) {
+                window.dapp_msg = 'Legacy dapp browsers';
+        } else {
+                window.dapp_msg = 'Non-Ethereum browser detected. You should consider trying MetaMask!';
+        }
+        window['nickName']=undefined;
+        showContainer();
+        $('.plist').on('click', 'input[type="radio"]', function(e) {
+            var inx = ($(e.target).val()).split(',');
+            $('#purchase').show();
+            inx = inx[1]*1;
+            $('#purchase').data('index', inx);
+        });
+    });
+    async function refreshList() {
+        createProductList();
+        myList();
+    }
+    async function getAccount() {
+        var nm = $('#nick').val();
+        if(nm) {
+            window.accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            if(accounts) {
+                accounts = accounts[0];
+                $('#logname').text(`${nm} ${accounts}`);
+                nickName = nm;
+                showContainer();
+                window.web3 = new Web3(window.ethereum);
+                contractInstance = await new window.web3.eth.Contract(abi, contractAddress);
+                refreshList();
+            } else {
+                alert('계정을 가져오지 못했습니다.');
+            }
+        } else {
+            alert('NickName을 입력해 주세요.');
+        }
+    }
+    async function createProductList() {
+        await contractInstance.methods.getSize().call(function(err,res){
+            if(err){
+                alert(`등록물품 목록을 가져오지 못하였습니다.`);
+                return;
+            }
+            const size = res*1;
+            if(size === 0){
+                $('tbody.plist').html('<tr><td colspan="4">등록물품이 없습니다.</td></tr>');
+            } else {
+                $('tbody.plist').html('');
+                function _ (inx){
+                    contractInstance.methods.productList(i).call(function(err1,res1) {
+                        if(err1) {
+                            alert(`${inx}상품을 확인할 수 없습니다.`);
+                            return;
+                        }
+                        if('0x0000000000000000000000000000000000000000' === res1.buyer) {
+                            var html = $('tbody.plist').html();
+                            const inputHtml = `<input type="radio" name="product" value="${res1.productName}, ${inx}"/>`;
+                            const pname = Web3.utils.hexToUtf8(res1.productName);
+                            html += `<tr><td>${inputHtml}</td><td>${pname}</td><td>${res1.pOwner}</td><td>${res1.price}</td></tr>`;
+                            $('tbody.plist').html(html);
+                        }
+                    });
+                };
+                for(var i=0; i<size; i++) {
+                    _(i);
+                }
+            }
+        });
+    }
+    async function myList() {
+        await contractInstance.methods.getSize().call(function(err,res){
+            if(err){
+                alert(`등록물품 목록을 가져오지 못하였습니다.`);
+                return;
+            }
+            const size = res*1;
+            if(size === 0){
+                $('ul#mylist').html('<li>구매 물품이 없습니다.</li>');
+            } else {
+                $('ul#mylist').html('');
+                var myProductSize = 0;
+                function _ (inx){
+                    contractInstance.methods.productList(i).call(function(err1,res1) {
+                        if(err1) {
+                            alert(`${inx}상품을 확인할 수 없습니다.`);
+                            return;
+                        }
+                        if(accounts.toUpperCase() === res1.buyer.toUpperCase()) {
+                            myProductSize++;
+                            var html = $('ul#mylist').html();
+                            const pname = Web3.utils.hexToUtf8(res1.productName);
+                            html += `<li>PRODUCT NAME ${pname} : ${res1.price} Wei</li>`;
+                            $('ul#mylist').html(html);
+                        }
+                    });
+                };
+                for(var i=0; i<size; i++) {
+                    _(i);
+                }
+                if(size === 0){
+                    $('ul#mylist').html('<li>구매 물품이 없습니다.</li>');
+                }
+            }
+        });
+    }
+    function showContainer() {
+        $('#purchase').hide();
+        if (!nickName) {
+            $('.container').hide();
+            $('.login').show();
+        } else {
+            $('.container').show();
+            $('.login').hide();
+        }
+    }
+    async function getProductList() {
+        var list = await ethereum.request({ method: 'eth_requestAccounts' });
+    }
+    async function purchase() {
+        var index = $('#purchase').data('index')*1;
+        if(!!(index*1) &&index>-1) {
+            contractInstance.methods.productList(index).call(function(err,res) {
+                if(err) {
+                    alert('상품을 확인할 수 없습니다.');
+                    return;
+                }
+                const pname = Web3.utils.hexToUtf8(res.productName);
+                contractInstance.methods.buy(index).send({from:accounts, value:res.price}, function(err1, res1){
+                    if(err1){
+                        alert(`${pname}의 구매를 완료하지 못하였습니다.`);
+                        return;
+                    }
+                    alert(`${pname}의 구매를 완료하였습니다.`);
+                });
+            });
+        }
+    }
+    async function enrollProduct() {
+        var pname = $('#pname').val(),
+        price = $("#price").val();
+        await contractInstance.methods.enrollProduct(Web3.utils.utf8ToHex(pname), price*1).send({from:accounts}, 
+            function(err, res){
+                if(err){
+                    alert(`${pname}의 거래물품 등록을 완료하지 못하였습니다.`);
+                    return;
+                }
+                alert(`${pname}을 ${price}에 거래물품으로 등록하였습니다.`);
+                refreshList();
+                $('#pname').val('');
+                $("#price").val('');
+            });
+    }
+    function newlyEnrollPrdt() {
+        console.log('newlyEnrollPrdt()')
+    }
+ </script>
+</head>
+<body>
+<div class="container">
+ <h1>중고물품거래사이트</h1>
+ <div class="greet"><span id="logname"></span>님, 안녕하세요.</div>
+ <div class="table-wrapper">
+    <ul style="list-style: none;">
+        <li><h3>거래물품리스트</h3></li>
+        <li><button id="ref" onclick="refreshList()">새로고침</button><button id="purchase" onclick="purchase()">구매</button></li>
+        <li>
+            <table class="fl-table">
+                <thead>
+                    <tr>
+                        <td>선택</td>
+                        <td>물품명</td>
+                        <td>판매자</td>
+                        <td>가격</td>
+                    </tr>
+                </thead>
+                <tbody class="plist">
+                </tbody>
+            </table>
+        </li>
+        <li>
+            <table class="ovt">
+                <colgroup>
+                    <col width="10%"/>
+                    <col width="90%"/>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th colspan="2">물품등록하기</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <th>물품명</th>
+                    <td><input type="text" name="pname" id="pname"/></td>
+                </tr>
+                <tr>
+                    <th>가격</th>
+                    <td><input type="number" name="price" id="price"/></td>
+                </tr>
+                <tr class="last">
+                    <td colspan="2"><button onclick="enrollProduct();">등록</button></td>
+                </tr>
+            </table>
+        </li>
+        <li>
+            <table>
+                <thead>
+                    <tr><td><h3>내 구매 목록</h3></td></tr>
+                </thead>
+                <tbody>
+                    <tr><td>
+                        <ul id="mylist">
+                        </ul>
+                    </td></tr>
+                </tbody>
+            </table>
+        </li>
+        <li><a href="https://youtu.be/9zBwWqnLGlI" target="_blank">YOUTUBE 동영상보기</a></li>
+    </ul>
+ </div>
+</div>
+<div class="login">
+ <h1>중고물품거래사이트</h1>
+ NickName: <input type="text" name="nick" id='nick'/>
+ <button onclick="getAccount();">Login</button>
+ <br><br>
+ <a href="https://youtu.be/9zBwWqnLGlI" target="_blank">YOUTUBE 동영상보기</a>
+</div>
+</body>
+</html>
